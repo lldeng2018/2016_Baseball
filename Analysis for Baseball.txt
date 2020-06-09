@@ -1,0 +1,62 @@
+--Baseball Analysis queries
+--Returns away wins for the top ten teams.
+Select Team, Count(DETAIL.Outome) as RoadWins
+From Detail
+Where DETAIL.HomeAway = 'Away' and DETAIL.Outome
+='Win'
+Group By Team
+Order by RoadWins Desc
+Fetch first 10 rows only;
+
+--Returns the ten teams with the most away errors.
+SELECT Team, COUNT(Errors) as TotalAwayErrors
+FROM DETAIL
+WHERE HomeAway = 'Away'
+GROUP BY Team
+ORDER BY TotalAwayErrors DESC
+FETCH first 10 rows only;
+
+--Which wind directions result in the most games with hits above average?
+SELECT GAME.WindDirection, Count(DETAIL.GameID) AS
+Occurrences
+FROM DETAIL LEFT JOIN GAME ON DETAIL.GameID =
+GAME.GameID
+Where (DETAIL.Hits > (Select AVG(Hits) FROM DETAIL))
+GROUP BY GAME.WindDirection
+ORDER BY Occurrences ASC
+FETCH FIRST 8 ROWS ONLY;
+
+--Which stadium has the highest run potential?
+SELECT COUNT (DETAIL.Runs) AS Total_Runs, VENUE.Venue,
+VENUE.IndoorOutdoor AS Environment, VENUE.FieldType AS
+Field_Type
+FROM VENUE JOIN GAME
+ON VENUE.VenueID = GAME.VenueID
+JOIN DETAIL ON DETAIL.GameID = GAME.GameID
+GROUP BY VENUE.Venue, VENUE.IndoorOutdoor, VENUE.FieldType
+ORDER BY COUNT (DETAIL.Runs) DESC
+FETCH first 10 rows only;
+
+--Summary statistic for game attendance
+SELECT VENUE.Venue, FLOOR(AVG (GAME.Attendence)) as
+Average_Attendance, MAX(GAME.Attendence) AS
+Max_Attendance, MIN(GAME.Attendence) AS MIN_Attendance
+FROM VENUE JOIN GAME
+ON VENUE.VenueID = GAME.VenueID
+GROUP BY VENUE.Venue
+ORDER BY Average_Attendance DESC
+FETCH first 10 rows only;
+
+--This returns the total wins, average attendance, and average temperature. This helps us gain
+--insight on if fans come purely because of wins or if the weather is nice.
+SELECT TEAM.Team, COUNT(DETAIL.Outome) as
+TotalWins,FLOOR(AVG(GAME.Attendence)) AS
+AverageAttendance,FLOOR(AVG(GAME.Temperature)) AS
+AverageTemperature
+FROM DETAIL JOIN TEAM
+ON DETAIL.TeamID = TEAM.TeamID
+JOIN GAME
+ON GAME.GameID = DETAIL.GameID
+WHERE Outome= 'Win'
+GROUP BY TEAM.Team
+ORDER BY AVG(GAME.Attendence) DESC;
